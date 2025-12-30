@@ -49,6 +49,9 @@ export const eventAPI = {
   update: (id, data) => api.put(`/events/${id}`, data),
   delete: (id) => api.delete(`/events/${id}`),
   getMyEvents: () => api.get('/events/manager/my-events'),
+  register: (eventId) => api.post(`/events/${eventId}/register`),
+  unregister: (eventId) => api.delete(`/events/${eventId}/register`),
+  checkRegistration: (eventId) => api.get(`/events/${eventId}/registration-status`),
 };
 
 // Membership API

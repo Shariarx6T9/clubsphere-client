@@ -1,12 +1,69 @@
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { eventAPI } from "../utils/api";
 import { useAuth } from "../hooks/useAuth";
+import { useState } from "react";
 
 const EventDetails = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const unregisterMutation = useMutation({
+    mutationFn: () => eventAPI.unregister(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["event", id]);
+      queryClient.invalidateQueries(["eventRegistration", id, user?.email]);
+      setIsRegistering(false);
+    },
+    onError: (error) => {
+      console.error("Unregistration failed:", error);
+      setIsRegistering(false);
+      alert(error.response?.data?.message || "Unregistration failed. Please try again.");
+    },
+  });
+
+  const handleUnregister = () => {
+    const confirmed = window.confirm("Are you sure you want to unregister from this event?");
+    if (confirmed) {
+      setIsRegistering(true);
+      unregisterMutation.mutate();
+    }
+  };
+
+  const registerMutation = useMutation({
+    mutationFn: () => eventAPI.register(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["event", id]);
+      queryClient.invalidateQueries(["eventRegistration", id, user?.email]);
+      setIsRegistering(false);
+    },
+    onError: (error) => {
+      console.error("Registration failed:", error);
+      setIsRegistering(false);
+      alert(error.response?.data?.message || "Registration failed. Please try again.");
+    },
+  });
+
+  const handleRegister = async () => {
+    if (!user) return;
+    
+    setIsRegistering(true);
+    
+    if (event.isPaid) {
+      const confirmed = window.confirm(
+        `This event costs $${event.eventFee}. Do you want to proceed with registration?`
+      );
+      if (!confirmed) {
+        setIsRegistering(false);
+        return;
+      }
+    }
+    
+    registerMutation.mutate();
+  };
 
   const {
     data: event,
@@ -15,6 +72,13 @@ const EventDetails = () => {
   } = useQuery({
     queryKey: ["event", id],
     queryFn: () => eventAPI.getById(id).then((res) => res.data),
+  });
+
+  // Check if user is registered for this event
+  const { data: userRegistration } = useQuery({
+    queryKey: ["eventRegistration", id, user?.email],
+    queryFn: () => eventAPI.checkRegistration(id).then((res) => res.data),
+    enabled: !!user && !!id,
   });
 
   const formatDate = (dateString) => {
@@ -150,16 +214,31 @@ const EventDetails = () => {
                         <span className="px-3 py-2 bg-yellow-100 text-yellow-800 rounded-lg text-sm font-medium">
                           Event Full
                         </span>
+                      ) : userRegistration ? (
+                        <button
+                          onClick={handleUnregister}
+                          disabled={isRegistering}
+                          className={`bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors ${
+                            isRegistering
+                              ? "opacity-50 cursor-not-allowed"
+                              : "cursor-pointer"
+                          }`}
+                        >
+                          {isRegistering ? "Processing..." : "Unregister"}
+                        </button>
                       ) : (
                         <button
+                          onClick={handleRegister}
+                          disabled={user.role !== "member" || isRegistering}
                           className={`bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors ${
-                            user.role === "member"
-                              ? "cursor-pointer"
-                              : "opacity-50 cursor-not-allowed"
+                            user.role !== "member" || isRegistering
+                              ? "opacity-50 cursor-not-allowed"
+                              : "cursor-pointer"
                           }`}
-                          disabled={user.role !== "member"}
                         >
-                          {event.isPaid
+                          {isRegistering
+                            ? "Registering..."
+                            : event.isPaid
                             ? `Register - $${event.eventFee}`
                             : "Register - Free"}
                         </button>
