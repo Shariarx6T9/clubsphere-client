@@ -235,9 +235,11 @@ const ClubDetails = () => {
                           </button>
                         ) : (
                           <button
-                            disabled={user.role !== "member"}
+                            disabled={
+                              user.role !== "member" ||
+                              joinClubMutation.isLoading
+                            }
                             onClick={handleJoinFreeClub}
-                            disabled={joinClubMutation.isLoading}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             {joinClubMutation.isLoading ? (
