@@ -16,6 +16,9 @@ import EventDetails from './pages/EventDetails';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import NotFound from './pages/NotFound';
+import Help from './pages/Help';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 
 // Dashboard Pages
 import AdminDashboard from './pages/dashboard/AdminDashboard';
@@ -51,6 +54,9 @@ function App() {
                 <Route path="/events/:id" element={<EventDetails />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/help" element={<Help />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
 
                 {/* Protected Dashboard Routes */}
                 <Route path="/dashboard/admin/*" element={

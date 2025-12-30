@@ -24,7 +24,7 @@ const HeroCTAButtons = () => {
         </span>
       </Link>
       <Link
-        to="/register"
+        to="/clubs"
         className="group border-2 border-white text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-4 rounded-xl transition-all duration-300 backdrop-blur-sm hover:scale-105"
       >
         Join Community
